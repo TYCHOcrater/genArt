@@ -6,12 +6,17 @@ require("three/examples/js/controls/OrbitControls");
 
 const canvasSketch = require("canvas-sketch");
 const random = require("canvas-sketch-util/random");
+const palettes = require('nice-color-palettes');
 
 const settings = {
+  dimensions: [ 512, 512 ],
+  fps: 24,
+  duration: 2,
   // Make the loop animated
   animate: true,
   // Get a WebGL canvas rather than 2D
   context: "webgl",
+  // **** MSAA
   attributes: { antialias: true }
 };
 
@@ -33,13 +38,15 @@ const sketch = ({ context }) => {
   // Setup your scene
   const scene = new THREE.Scene();
 
+  const palette = random.pick(palettes);
+
   const box = new THREE.BoxGeometry(1, 1, 1);
   // Setup a mesh with geometry + material
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 40; i++) {
     const mesh = new THREE.Mesh(
       box,
-      new THREE.MeshBasicMaterial({
-        color: 'red'
+      new THREE.MeshStandardMaterial({
+        color: random.pick(palette)
       })
     );
     mesh.position.set(
@@ -47,9 +54,20 @@ const sketch = ({ context }) => {
       random.range(-1, 1),
       random.range(-1, 1)
     );
-    mesh.scale.multiplyScalar(0.1);
+    mesh.scale.set(
+      random.range(-1, 1),
+      random.range(-1, 1),
+      random.range(-1, 1),
+    );
+    mesh.scale.multiplyScalar(0.5);
     scene.add(mesh);
   }
+
+  scene.add(new THREE.AmbientLight('hsl(0, 0%, 40%'));
+
+  const light = new THREE.DirectionalLight('white', 1);
+  light.position.set(0, 0, 4);
+  scene.add(light);
 
 
   // draw each frame
@@ -82,7 +100,8 @@ const sketch = ({ context }) => {
       camera.updateProjectionMatrix();
     },
     // Update & render your scene here
-    render({ time }) {
+    render({ playhead }) {
+      scene.rotation.x = playhead * Math.PI * 2;
       renderer.render(scene, camera);
     },
     // Dispose of events & renderer for cleaner hot-reloading
