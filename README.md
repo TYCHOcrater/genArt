@@ -1,4 +1,4 @@
-# webgl stuff 
+# canvas and webgl with threejs 
 
 * learned to use canvas and webgl
 * threejs
