@@ -17,6 +17,7 @@ const frag = glsl(`
   varying vec2 vUv;
 
   #pragma glslify: noise = require('glsl-noise/simplex/3d');
+  #pragma glslify: hsl2rgb = require('glsl-hsl2rgb');
 
   void main () {
     // vec3 colorA = cos(time) + vec3(1.0, 0.0, 0.0);
@@ -24,6 +25,7 @@ const frag = glsl(`
 
     // vec2 center = vUv - 0.5;
     // center.x *= aspect;
+    
     // float dist = length(center);
 
     // float alpha = smoothstep(0.2515, 0.25, dist);
@@ -31,9 +33,22 @@ const frag = glsl(`
     // vec3 color = mix(colorA, colorB, vUv.x + vUv.y * sin(time));
     // gl_FragColor = vec4(color, alpha);
 
-    float n = noise(vec3(vUv.xy, time));
+    vec2 center = vUv - 0.5;
+    center.x *= aspect;
 
-    gl_FragColor = vec4(vec3(n), 1.0);
+    float dist = length(center);
+
+    float alpha = smoothstep(0.2515, 0.25, dist);
+
+    float n = noise(vec3(center * 1.0, time * 0.25));
+
+    vec3 color = hsl2rgb(
+      0.9,
+      0.5,
+      0.1 + n * 0.5
+    );
+
+    gl_FragColor = vec4(color, alpha);
   }
 `);
 
