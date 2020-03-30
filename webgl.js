@@ -42,12 +42,30 @@ const sketch = ({ context }) => {
 
   const palette = random.pick(palettes);
 
+  const fragmentShader = `
+  varying vec2 vUv;
+    void main() {
+      vec3 color = vec3(1.0);
+      gl_FragColor = vec4(vec3(vUv.x), 1.0);
+    }
+  `;
+
+  const vertexShader = `
+    varying vec2 vUv;
+    void main () {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position.xyz, 1.0);
+    }
+  `
+
   const box = new THREE.BoxGeometry(1, 1, 1);
   // Setup a mesh with geometry + material
   for (let i = 0; i < 40; i++) {
     const mesh = new THREE.Mesh(
       box,
-      new THREE.MeshStandardMaterial({
+      new THREE.ShaderMaterial({
+        fragmentShader,
+        vertexShader,
         color: random.pick(palette)
       })
     );
