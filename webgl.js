@@ -9,6 +9,7 @@ const random = require("canvas-sketch-util/random");
 const palettes = require('nice-color-palettes');
 const eases = require('eases');
 const BezierEasing = require('bezier-easing');
+const glslify = require('glslify');
 
 const settings = {
   dimensions: [ 512, 512 ],
@@ -44,23 +45,28 @@ const sketch = ({ context }) => {
 
   const fragmentShader = `
   varying vec2 vUv;
+
+  uniform vec3 color;
+
     void main() {
-      vec3 color = vec3(1.0);
-      gl_FragColor = vec4(vec3(vUv.x), 1.0);
+      gl_FragColor = vec4(vec3(color * vUv.x), 1.0);
     }
   `;
 
-  const vertexShader = `
+  const vertexShader = glslify(`
     varying vec2 vUv;
 
     uniform float time;
 
+    #pragma glslify: noise = require('glsl-noise/simplex/4d');
+
     void main () {
       vUv = uv;
-      vec3 pos = position.xyz * sin(time);
+      vec3 pos = position.xyz;
+      pos += noise(vec4(position.xyz, time));
       gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
     }
-  `
+  `);
 
   const box = new THREE.BoxGeometry(1, 1, 1);
   const meshes = [];
@@ -72,9 +78,9 @@ const sketch = ({ context }) => {
         fragmentShader,
         vertexShader,
         uniforms: {
+          color: { value: new THREE.Color(random.pick(palette)) },
           time: { value: 0 }
         },
-        color: random.pick(palette)
       })
     );
     mesh.position.set(
