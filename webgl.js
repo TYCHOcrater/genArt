@@ -30,7 +30,7 @@ const sketch = ({ context }) => {
   });
 
   // WebGL background color
-  renderer.setClearColor("hsl(0,0%,100%)", 1);
+  renderer.setClearColor("hsl(0,0%,0%)", 1);
 
   // Setup a camera
   const camera = new THREE.OrthographicCamera();
@@ -63,7 +63,7 @@ const sketch = ({ context }) => {
     void main () {
       vUv = uv;
       vec3 pos = position.xyz;
-      pos += noise(vec4(position.xyz, time));
+      pos += noise(vec4(position.xyz, time) * 1.0);
       gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
     }
   `);
