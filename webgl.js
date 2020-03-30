@@ -29,7 +29,7 @@ const sketch = ({ context }) => {
   });
 
   // WebGL background color
-  renderer.setClearColor("hsl(0,0%,95%)", 1);
+  renderer.setClearColor("hsl(0,0%,100%)", 1);
 
   // Setup a camera
   const camera = new THREE.OrthographicCamera();
@@ -52,13 +52,18 @@ const sketch = ({ context }) => {
 
   const vertexShader = `
     varying vec2 vUv;
+
+    uniform float time;
+
     void main () {
       vUv = uv;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position.xyz, 1.0);
+      vec3 pos = position.xyz * sin(time);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
     }
   `
 
   const box = new THREE.BoxGeometry(1, 1, 1);
+  const meshes = [];
   // Setup a mesh with geometry + material
   for (let i = 0; i < 40; i++) {
     const mesh = new THREE.Mesh(
@@ -66,6 +71,9 @@ const sketch = ({ context }) => {
       new THREE.ShaderMaterial({
         fragmentShader,
         vertexShader,
+        uniforms: {
+          time: { value: 0 }
+        },
         color: random.pick(palette)
       })
     );
@@ -81,6 +89,7 @@ const sketch = ({ context }) => {
     );
     mesh.scale.multiplyScalar(0.5);
     scene.add(mesh);
+    meshes.push(mesh);
   }
 
   scene.add(new THREE.AmbientLight('hsl(0, 0%, 40%'));
@@ -122,9 +131,14 @@ const sketch = ({ context }) => {
       camera.updateProjectionMatrix();
     },
     // Update & render your scene here
-    render({ playhead }) {
+    render({ playhead, time }) {
       const t = Math.sin(playhead * Math.PI);
       scene.rotation.z = easeFn(t);
+
+      meshes.forEach(mesh => {
+        mesh.material.uniforms.time.value = time;
+      });
+
       renderer.render(scene, camera);
     },
     // Dispose of events & renderer for cleaner hot-reloading
