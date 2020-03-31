@@ -56,14 +56,16 @@ const sketch = ({ context }) => {
   const vertexShader = glslify(`
     varying vec2 vUv;
 
-    uniform float time;
+    uniform float playhead;
 
     #pragma glslify: noise = require('glsl-noise/simplex/4d');
 
     void main () {
       vUv = uv;
       vec3 pos = position.xyz;
-      pos += noise(vec4(position.xyz, time) * 1.0);
+
+
+      pos += noise(vec4(position.xyz, playhead * 3.14));
       gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
     }
   `);
@@ -79,7 +81,7 @@ const sketch = ({ context }) => {
         vertexShader,
         uniforms: {
           color: { value: new THREE.Color(random.pick(palette)) },
-          time: { value: 0 }
+          playhead: { value: 0 }
         },
       })
     );
@@ -98,7 +100,7 @@ const sketch = ({ context }) => {
     meshes.push(mesh);
   }
 
-  scene.add(new THREE.AmbientLight('hsl(0, 0%, 40%'));
+  scene.add(new THREE.AmbientLight('hsl(0, 0%, 100%'));
 
   const light = new THREE.DirectionalLight('white', 1);
   light.position.set(0, 0, 4);
@@ -142,7 +144,7 @@ const sketch = ({ context }) => {
       scene.rotation.z = easeFn(t);
 
       meshes.forEach(mesh => {
-        mesh.material.uniforms.time.value = time;
+        mesh.material.uniforms.playhead.value = playhead;
       });
 
       renderer.render(scene, camera);
