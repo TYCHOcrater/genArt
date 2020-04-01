@@ -43,15 +43,21 @@ const sketch = ({ context }) => {
 
   const palette = random.pick(palettes);
 
-  const fragmentShader = `
+  const fragmentShader = glslify(`
   varying vec2 vUv;
 
+  #pragma glslify: noise = require('glsl-noise/simplex/3d');
+
   uniform vec3 color;
+  uniform float playhead;
 
     void main() {
-      gl_FragColor = vec4(vec3(color * vUv.x), 1.0);
+      float offset = 0.2 * noise(vec3(vUv.xy * 5.0, playhead));
+
+
+      gl_FragColor = vec4(vec3(color * vUv.x + offset), 1.0);
     }
-  `;
+  `);
 
   const vertexShader = glslify(`
     varying vec2 vUv;
@@ -64,16 +70,20 @@ const sketch = ({ context }) => {
       vUv = uv;
       vec3 pos = position.xyz;
 
+      pos += 0.1 * normal * noise(vec4(pos.xyz * 10.0, playhead));
+      pos += 0.25 * normal * noise(vec4(pos.xyz * 1.0, playhead));
+      pos += 0.05 * normal * noise(vec4(pos.xyz * 100.0, playhead));
 
-      pos += noise(vec4(position.xyz, playhead * 3.14));
+
+
       gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
     }
   `);
 
-  const box = new THREE.BoxGeometry(1, 1, 1);
+  const box = new THREE.SphereGeometry(1, 32, 32);
   const meshes = [];
   // Setup a mesh with geometry + material
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 1; i++) {
     const mesh = new THREE.Mesh(
       box,
       new THREE.ShaderMaterial({
@@ -85,17 +95,17 @@ const sketch = ({ context }) => {
         },
       })
     );
-    mesh.position.set(
-      random.range(-1, 1),
-      random.range(-1, 1),
-      random.range(-1, 1)
-    );
-    mesh.scale.set(
-      random.range(-1, 1),
-      random.range(-1, 1),
-      random.range(-1, 1),
-    );
-    mesh.scale.multiplyScalar(0.5);
+    // mesh.position.set(
+    //   random.range(-1, 1),
+    //   random.range(-1, 1),
+    //   random.range(-1, 1)
+    // );
+    // mesh.scale.set(
+    //   random.range(-1, 1),
+    //   random.range(-1, 1),
+    //   random.range(-1, 1),
+    // );
+    // mesh.scale.multiplyScalar(0.5);
     scene.add(mesh);
     meshes.push(mesh);
   }
